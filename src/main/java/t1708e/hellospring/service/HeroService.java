@@ -3,6 +3,7 @@ package t1708e.hellospring.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import t1708e.hellospring.entity.Hero;
 import t1708e.hellospring.repository.HeroRepository;
@@ -21,8 +22,8 @@ public class HeroService {
         return heroRepository.findActiveHero(1);
     }
 
-    public Page<Hero> heroesWithPaginate(int page, int limit) {
-        return heroRepository.findAll(PageRequest.of(page - 1, limit));
+    public Page<Hero> heroesWithPaginate(Specification specification, int page, int limit) {
+        return heroRepository.findAll(specification, PageRequest.of(page - 1, limit));
     }
 
     public Hero getById(int id) {

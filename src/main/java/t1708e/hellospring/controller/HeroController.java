@@ -2,6 +2,7 @@ package t1708e.hellospring.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -10,6 +11,8 @@ import t1708e.hellospring.entity.Hero;
 import t1708e.hellospring.entity.rest.RESTPagination;
 import t1708e.hellospring.entity.rest.RESTResponse;
 import t1708e.hellospring.service.HeroService;
+import t1708e.hellospring.specification.HeroSpecification;
+import t1708e.hellospring.specification.SearchCriteria;
 
 import java.util.List;
 import java.util.stream.Collector;
@@ -23,9 +26,20 @@ public class HeroController {
     HeroService heroService;
 
     @RequestMapping(method = RequestMethod.GET)
-    public ResponseEntity<Object> getList(@RequestParam(defaultValue = "1", required = false) int page,
-                                          @RequestParam(defaultValue = "10", required = false) int limit) {
-        Page<Hero> heroPage = heroService.heroesWithPaginate(page, limit);
+    public ResponseEntity<Object> getList(
+            @RequestParam(value = "keyword", required = false) String keyword,
+            @RequestParam(value = "from", required = false) String from,
+            @RequestParam(value = "to", required = false) String to,
+            @RequestParam(defaultValue = "1", required = false) int page,
+            @RequestParam(defaultValue = "10", required = false) int limit) {
+        Specification specification = Specification.where(null);
+        if (keyword != null && keyword.length() > 0) {
+            specification = specification
+                    .and(new HeroSpecification(new SearchCriteria("name", ":", keyword)))
+                    .or(new HeroSpecification(new SearchCriteria("description", ":", keyword)))
+                    .or(new HeroSpecification(new SearchCriteria("history", ":", keyword)));
+        }
+        Page<Hero> heroPage = heroService.heroesWithPaginate(specification, page, limit);
         return new ResponseEntity<>(new RESTResponse.Success()
                 .setStatus(HttpStatus.OK.value())
                 .setMessage("Action success!")
